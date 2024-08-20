@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha de Anamnese Terapêutica Para Trabalhos Energéticos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+            font-size: 16px;
+        }
+
+        h1, h2, h3 {
+            text-align: center;
+            color: #2E8B57;
+        }
+
+        h3 {
+            margin-top: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        table, th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #2E8B57;
+            color: white;
+            text-align: center;
+        }
+
+        input[type="text"], input[type="date"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input[type="text"]:focus, input[type="date"]:focus, input[type="number"]:focus {
+            border-color: #2E8B57;
+            outline: none;
+        }
+
+        ::placeholder {
+            color: #888;
+            opacity: 1;
+        }
+
+        .section-title {
+            margin-top: 40px;
+            font-size: 1.5em;
+            color: #4682B4;
+            border-bottom: 2px solid #2E8B57;
+            padding-bottom: 10px;
+        }
+
+        .comment {
+            color: #555;
+            font-style: italic;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #888;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 40px;
+        }
+
+        .button-container button {
+            background-color: #2E8B57;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .button-container button:hover {
+            background-color: #246646;
+        }
+
+        @media only screen and (max-width: 600px) {
+            body {
+                font-size: 14px;
+            }
+
+            table, th, td {
+                font-size: 12px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            h3 {
+                font-size: 18px;
+            }
+
+            .button-container button {
+                width: 100%;
+                margin: 10px 0;
+            }
+
+            .container {
+                padding: 5px;
+            }
+        }
+
+        /* Estilo para evitar quebras de página */
+        .page-break {
+            page-break-after: always;
+        }
+
+        table {
+            page-break-inside: avoid;
+        }
+
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+
+        thead {
+            display: table-header-group;
+        }
+
+        tfoot {
+            display: table-footer-group;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+    <script>
+        function clearAllInputs() {
+            document.querySelectorAll('input').forEach(input => {
+                input.value = '';
+                if (input.type === 'radio') {
+                    input.checked = false;
+                }
+            });
+            localStorage.clear();
+        }
+
+        function exportData() {
+            const fileName = prompt("Por favor, insira o nome do arquivo:", "dados_anamnese");
+            if (!fileName) return;
+
+            const data = {};
+            document.querySelectorAll('input').forEach((input) => {
+                if (input.type === 'radio') {
+                    if (input.checked) {
+                        data[input.id] = input.value;
+                    }
+                } else {
+                    data[input.id] = input.value;
+                }
+            });
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${fileName}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    Object.keys(data).forEach(key => {
+                        const input = document.getElementById(key);
+                        if (input) {
+                            if (input.type === 'radio') {
+                                document.querySelector(`input[name="${input.name}"][value="${data[key]}"]`).checked = true;
+                            } else {
+                                input.value = data[key];
+                            }
+                        }
+                    });
+                } catch (e) {
+                    alert("Erro ao importar os dados. Certifique-se de que o arquivo está formatado corretamente.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function generatePDF() {
+            const element = document.querySelector(".container");
+            const opt = {
+                margin: 0.5,
+                filename: 'relatorio_anamnese.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+            html2pdf().from(element).set(opt).save();
+        }
+    </script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Ficha de Anamnese Terapêutica Para Trabalhos Energéticos</h1>
+        
+        <div class="field-group">
+            <label for="protocolo">Nº do Protocolo de Atendimento:</label>
+            <input type="text" id="protocolo" name="protocolo" aria-label="Nº do Protocolo de Atendimento">
+        </div>
+        <div class="field-group">
+            <label for="nome">Nome do Cliente / Espírito:</label>
+            <input type="text" id="nome" name="nome" aria-label="Nome do Cliente / Espírito">
+        </div>
+        <div class="field-group">
+            <label for="nascimento">Data de Nascimento:</label>
+            <input type="date" id="nascimento" name="nascimento" aria-label="Data de Nascimento">
+        </div>
+        <div class="field-group">
+            <label for="falecimento">Data de Falecimento:</label>
+            <input type="date" id="falecimento" name="falecimento" aria-label="Data de Falecimento">
+        </div>
+        <div class="field-group">
+            <label>Análise Preliminar:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="aceitar" name="analise" value="aceitar">
+                <label for="aceitar">Aceitar</label>
+                <input type="checkbox" id="recusar" name="analise" value="recusar">
+                <label for="recusar">Recusar</label>
+                <input type="text" id="analise_comentario" name="analise_comentario" placeholder="Comentários">
+            </div>
+        </div>
+        <div class="field-group">
+            <label>Identificador De Onde o Espírito se Encontra:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="nao_saber" name="identificador" value="nao_saber">
+                <label for="nao_saber">Não Saber</label>
+                <input type="checkbox" id="pode_saber" name="identificador" value="pode_saber">
+                <label for="pode_saber">Pode Saber</label>
+                <input type="text" id="identificador_comentario" name="identificador_comentario" placeholder="Comentários">
+            </div>
+        </div>
+        <div class="field-group">
+            <label>Caráter e Personalidade:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="confiavel" name="carater" value="confiavel">
+                <label for="confiavel">Confiável</label>
+                <input type="checkbox" id="nao_confiavel" name="carater" value="nao_confiavel">
+                <label for="nao_confiavel">Não Confiável</label>
+                <input type="checkbox" id="depende" name="carater" value="depende">
+                <label for="depende">Depende</label>
+                <input type="text" id="carater_comentario" name="carater_comentario" placeholder="Comentários">
+            </div>
+        </div>
+        <div class="field-group">
+            <label>Confiança Ou Não Confiança:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="confiavel2" name="confianca" value="confiavel">
+                <label for="confiavel2">Confiável</label>
+                <input type="checkbox" id="nao_confiavel2" name="confianca" value="nao_confiavel">
+                <label for="nao_confiavel2">Não Confiável</label>
+                <input type="checkbox" id="depende2" name="confianca" value="depende">
+                <label for="depende2">Depende</label>
+                <input type="text" id="confianca_comentario" name="confianca_comentario" placeholder="Comentários">
+            </div>
+        </div>
+        <div class="field-group">
+            <label for="nivel_espiritualidade">Nível de Espiritualidade:</label>
+            <input type="text" id="nivel_espiritualidade" name="nivel_espiritualidade" aria-label="Nível de Espiritualidade">
+        </div>
+        <div class="field-group">
+            <label for="caminho_certo">Se Está No Caminho Certo:</label>
+            <input type="text" id="caminho_certo" name="caminho_certo" aria-label="Se Está No Caminho Certo">
+        </div>
+        <div class="field-group">
+            <label>Saber Ou Não Saber:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="nao_saber2" name="saber" value="nao_saber">
+                <label for="nao_saber2">Não Saber</label>
+                <input type="checkbox" id="pode_saber2" name="saber" value="pode_saber">
+                <label for="pode_saber2">Pode Saber</label>
+                <input type="checkbox" id="depende3" name="saber" value="depende">
+                <label for="depende3">Depende</label>
+                <input type="text" id="saber_comentario" name="saber_comentario" placeholder="Comentários">
+            </div>
+        </div>
+        <div class="field-group">
+            <label for="disturbios_espirituais">Distúrbios Espirituais:</label>
+            <input type="text" id="disturbios_espirituais" name="disturbios_espirituais" aria-label="Distúrbios Espirituais">
+        </div>
+        <div class="field-group">
+            <label for="mas_energias">Más Energias:</label>
+            <input type="text" id="mas_energias" name="mas_energias" aria-label="Más Energias">
+        </div>
+        <div class="field-group">
+            <label for="causas_energeticas">Causas Energéticas Espirituais:</label>
+            <input type="text" id="causas_energeticas" name="causas_energeticas" aria-label="Causas Energéticas Espirituais">
+        </div>
+        <div class="field-group">
+            <label for="causas_espirituais">Causas Espirituais:</label>
+            <input type="text" id="causas_espirituais" name="causas_espirituais" aria-label="Causas Espirituais">
+        </div>
+        <div class="field-group">
+            <label for="agentes_obsessores">Agentes Obsessores Encarnados:</label>
+            <input type="text" id="agentes_obsessores" name="agentes_obsessores" aria-label="Agentes Obsessores Encarnados">
+        </div>
+        <div class="field-group">
+            <label for="tipos_obsessores">Tipos Comuns de Obsessores:</label>
+            <input type="text" id="tipos_obsessores" name="tipos_obsessores" aria-label="Tipos Comuns de Obsessores">
+        </div>
+        <div class="field-group">
+            <label for="entidades">Entidades:</label>
+            <input type="text" id="entidades" name="entidades" aria-label="Entidades">
+        </div>
+        <div class="field-group">
+            <label for="chips_implantes">Tipos de Chips e Implantes Nocivos:</label>
+            <input type="text" id="chips_implantes" name="chips_implantes" aria-label="Tipos de Chips e Implantes Nocivos">
+        </div>
+        <div class="field-group">
+            <label for="tipos_obsessoes">Tipos Mais Comuns de Obsessões:</label>
+            <input type="text" id="tipos_obsessoes" name="tipos_obsessoes" aria-label="Tipos Mais Comuns de Obsessões">
+        </div>
+        <div class="field-group">
+            <label for="procedencias_ondas">Procedências De Ondas Nocivas:</label>
+            <input type="text" id="procedencias_ondas" name="procedencias_ondas" aria-label="Procedências De Ondas Nocivas">
+        </div>
+        <div class="field-group">
+            <label for="origens_ondas">Origens das Ondas Nocivas:</label>
+            <input type="text" id="origens_ondas" name="origens_ondas" aria-label="Origens das Ondas Nocivas">
+        </div>
+        <div class="field-group">
+            <label for="locais_coisas">Locais E Coisas:</label>
+            <input type="text" id="locais_coisas" name="locais_coisas" aria-label="Locais E Coisas">
+        </div>
+        <div class="field-group">
+            <label for="carma_relacional">Carma Relacional:</label>
+            <input type="text" id="carma_relacional" name="carma_relacional" aria-label="Carma Relacional">
+        </div>
+        <div class="field-group">
+            <label for="carma_coletivo">Carma Coletivo:</label>
+            <input type="text" id="carma_coletivo" name="carma_coletivo" aria-label="Carma Coletivo">
+        </div>
+        <div class="field-group">
+            <label for="comprometimentos_carmicos">Comprometimentos Cármicos Atuantes:</label>
+            <input type="text" id="comprometimentos_carmicos" name="comprometimentos_carmicos" aria-label="Comprometimentos Cármicos Atuantes">
+        </div>
+        <div class="field-group">
+            <label for="leis_apometria">As Leis da Apometria:</label>
+            <input type="text" id="leis_apometria" name="leis_apometria" aria-label="As Leis da Apometria">
+        </div>
+        <div class="field-group">
+            <label for="fases_vida">Fases Da Vida:</label>
+            <input type="text" id="fases_vida" name="fases_vida" aria-label="Fases Da Vida">
+        </div>
+        <div class="field-group">
+            <label for="linha_tempo">Linha do Tempo:</label>
+            <input type="text" id="linha_tempo" name="linha_tempo" aria-label="Linha do Tempo">
+        </div>
+        <div class="field-group">
+            <label for="virtudes_01">Virtudes 01:</label>
+            <input type="text" id="virtudes_01" name="virtudes_01" aria-label="Virtudes 01">
+        </div>
+        <div class="field-group">
+            <label for="virtudes_02">Virtudes 02:</label>
+            <input type="text" id="virtudes_02" name="virtudes_02" aria-label="Virtudes 02">
+        </div>
+        <div class="field-group">
+            <label for="caracteristicas_fisicas">Características Físicas:</label>
+            <input type="text" id="caracteristicas_fisicas" name="caracteristicas_fisicas" aria-label="Características Físicas">
+        </div>
+        <div class="field-group">
+            <label for="escala_hawkins">Escala da Hawkins Nível de Consciência:</label>
+            <input type="text" id="escala_hawkins" name="escala_hawkins" aria-label="Escala da Hawkins Nível de Consciência">
+        </div>
+        <div class="field-group">
+            <label for="faculdades_paranormais">Faculdades Paranormais:</label>
+            <input type="text" id="faculdades_paranormais" name="faculdades_paranormais" aria-label="Faculdades Paranormais">
+        </div>
+        <div class="field-group">
+            <label for="motivacao_pessoal">Motivação Pessoal:</label>
+            <input type="text" id="motivacao_pessoal" name="motivacao_pessoal" aria-label="Motivação Pessoal">
+        </div>
+        <div class="field-group">
+            <label for="psicoemocional_01">Psicoemocional 01:</label>
+            <input type="text" id="psicoemocional_01" name="psicoemocional_01" aria-label="Psicoemocional 01">
+        </div>
+        <div class="field-group">
+            <label for="psicoemocional_02">Psicoemocional 02:</label>
+            <input type="text" id="psicoemocional_02" name="psicoemocional_02" aria-label="Psicoemocional 02">
+        </div>
+        <div class="field-group">
+            <label for="relacionamentos_01">Relacionamentos 01:</label>
+            <input type="text" id="relacionamentos_01" name="relacionamentos_01" aria-label="Relacionamentos 01">
+        </div>
+        <div class="field-group">
+            <label for="relacionamentos_02">Relacionamentos 02:</label>
+            <input type="text" id="relacionamentos_02" name="relacionamentos_02" aria-label="Relacionamentos 02">
+        </div>
+        <div class="field-group">
+            <label for="relacionamentos_desequilibrio">Relacionamentos Em Desiquilíbrio:</label>
+            <input type="text" id="relacionamentos_desequilibrio" name="relacionamentos_desequilibrio" aria-label="Relacionamentos Em Desiquilíbrio">
+        </div>
+        <div class="field-group">
+            <label for="causas_familiares">Causas Familiares:</label>
+            <input type="text" id="causas_familiares" name="causas_familiares" aria-label="Causas Familiares">
+        </div>
+        <div class="field-group">
+            <label for="ligacoes_vidas_passadas">Ligações de Vidas Passadas:</label>
+            <input type="text" id="ligacoes_vidas_passadas" name="ligacoes_vidas_passadas" aria-label="Ligações de Vidas Passadas">
+        </div>
+        <div class="field-group">
+            <label for="bloqueios_prosperidade">Causas Dos Bloqueios Na Prosperidade:</label>
+            <input type="text" id="bloqueios_prosperidade" name="bloqueios_prosperidade" aria-label="Causas Dos Bloqueios Na Prosperidade">
+        </div>
+        <div class="field-group">
+            <label>Nível de Estresse:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="sim_estresse" name="nivel_estresse" value="sim">
+                <label for="sim_estresse">Sim</label>
+                <input type="checkbox" id="nao_estresse" name="nivel_estresse" value="nao">
+                <label for="nao_estresse">Não</label>
+                <label for="numero_estresse">Número:</label>
+                <input type="number" id="numero_estresse" name="numero_estresse">
+            </div>
+        </div>
+        <div class="field-group">
+            <label for="emocoes_negativas_01">Emoções Negativas 01:</label>
+            <input type="text" id="emocoes_negativas_01" name="emocoes_negativas_01" aria-label="Emoções Negativas 01">
+        </div>
+        <div class="field-group">
+            <label for="emocoes_negativas_02">Emoções Negativas 02:</label>
+            <input type="text" id="emocoes_negativas_02" name="emocoes_negativas_02" aria-label="Emoções Negativas 02">
+        </div>
+        <div class="field-group">
+            <label for="vicios_pessoais">Vícios Pessoais:</label>
+            <input type="text" id="vicios_pessoais" name="vicios_pessoais" aria-label="Vícios Pessoais">
+        </div>
+        <div class="field-group">
+            <label for="causas_psiquicas">Causas Psíquicas:</label>
+            <input type="text" id="causas_psiquicas" name="causas_psiquicas" aria-label="Causas Psíquicas">
+        </div>
+        <div class="field-group">
+            <label for="causas_psicologicas_01">Causas Psicológicas 01:</label>
+            <input type="text" id="causas_psicologicas_01" name="causas_psicologicas_01" aria-label="Causas Psicológicas 01">
+        </div>
+        <div class="field-group">
+            <label for="causas_psicologicas_02">Causas Psicológicas 02:</label>
+            <input type="text" id="causas_psicologicas_02" name="causas_psicologicas_02" aria-label="Causas Psicológicas 02">
+        </div>
+        <div class="field-group">
+            <label for="saude_01">Saúde 01:</label>
+            <input type="text" id="saude_01" name="saude_01" aria-label="Saúde 01">
+        </div>
+        <div class="field-group">
+            <label for="saude_02">Saúde 02:</label>
+            <input type="text" id="saude_02" name="saude_02" aria-label="Saúde 02">
+        </div>
+        <div class="field-group">
+            <label for="sistemas">Sistemas:</label>
+            <input type="text" id="sistemas" name="sistemas" aria-label="Sistemas">
+        </div>
+        <div class="field-group">
+            <label for="tratamentos_energeticos">Tratamentos Energéticos:</label>
+            <input type="text" id="tratamentos_energeticos" name="tratamentos_energeticos" aria-label="Tratamentos Energéticos">
+        </div>
+        <div class="field-group">
+            <label for="terapias_indicadas">Terapias Indicadas:</label>
+            <input type="text" id="terapias_indicadas" name="terapias_indicadas" aria-label="Terapias Indicadas">
+        </div>
+        <div class="field-group">
+            <label for="tratamentos_holisticos">Tratamentos Holísticos:</label>
+            <input type="text" id="tratamentos_holisticos" name="tratamentos_holisticos" aria-label="Tratamentos Holísticos">
+        </div>
+        <div class="field-group">
+            <label for="limpeza_aura">Limpeza da Aura:</label>
+            <input type="text" id="limpeza_aura" name="limpeza_aura" aria-label="Limpeza da Aura">
+        </div>
+        <div class="field-group">
+            <label for="chakras">Chakras:</label>
+            <input type="text" id="chakras" name="chakras" aria-label="Chakras">
+        </div>
+        <div class="field-group">
+            <label for="mensuracao_chakras">Mensuração Dos Chakras:</label>
+            <input type="text" id="mensuracao_chakras" name="mensuracao_chakras" aria-label="Mensuração Dos Chakras">
+        </div>
+        <div class="field-group">
+            <label for="vitalidade">Nível de Porcentagem de Vitalidade:</label>
+            <input type="text" id="vitalidade" name="vitalidade" aria-label="Nível de Porcentagem de Vitalidade">
+        </div>
+        <div class="field-group">
+            <label for="corpos_espirituais">Os Sete Corpos Espirituais:</label>
+            <input type="text" id="corpos_espirituais" name="corpos_espirituais" aria-label="Os Sete Corpos Espirituais">
+        </div>
+        <div class="field-group">
+            <label>Nível de Equilíbrio das Polaridades Yin e Yang:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="yin" name="polaridade" value="yin">
+                <label for="yin">Yin</label>
+                <input type="checkbox" id="yang" name="polaridade" value="yang">
+                <label for="yang">Yang</label>
+                <label for="numero_polaridade">Número:</label>
+                <input type="number" id="numero_polaridade" name="numero_polaridade">
+            </div>
+        </div>
+        <div class="field-group">
+            <label for="planetas">Planetas:</label>
+            <input type="text" id="planetas" name="planetas" aria-label="Planetas">
+        </div>
+        <div class="field-group">
+            <label for="ervas_tratamento">Ervas Para Tratamento:</label>
+            <input type="text" id="ervas_tratamento" name="ervas_tratamento" aria-label="Ervas Para Tratamento">
+        </div>
+        <div class="field-group">
+            <label for="bons_habitos">Bons Hábitos Para Desenvolver:</label>
+            <input type="text" id="bons_habitos" name="bons_habitos" aria-label="Bons Hábitos Para Desenvolver">
+        </div>
+        <div class="field-group">
+            <label for="limpeza_ambientes">Limpeza de Ambientes:</label>
+            <input type="text" id="limpeza_ambientes" name="limpeza_ambientes" aria-label="Limpeza de Ambientes">
+        </div>
+        <div class="field-group">
+            <label>Comandos Estelares:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="sim_comandos" name="comandos_estelares" value="sim">
+                <label for="sim_comandos">Sim</label>
+                <input type="checkbox" id="nao_comandos" name="comandos_estelares" value="nao">
+                <label for="nao_comandos">Não</label>
+                <input type="text" id="qual_comandos" name="qual_comandos" placeholder="Qual?">
+            </div>
+        </div>
+        <div class="field-group">
+            <label>Hierarquias Espirituais:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="sim_hierarquias" name="hierarquias_espirituais" value="sim">
+                <label for="sim_hierarquias">Sim</label>
+                <input type="checkbox" id="nao_hierarquias" name="hierarquias_espirituais" value="nao">
+                <label for="nao_hierarquias">Não</label>
+                <input type="text" id="qual_hierarquias" name="qual_hierarquias" placeholder="Qual?">
+            </div>
+        </div>
+        <div class="field-group">
+            <label>Auxílio Dos Arcanjos:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="sim_arcanjos" name="auxilio_arcanjos" value="sim">
+                <label for="sim_arcanjos">Sim</label>
+                <input type="checkbox" id="nao_arcanjos" name="auxilio_arcanjos" value="nao">
+                <label for="nao_arcanjos">Não</label>
+                <input type="text" id="qual_arcanjos" name="qual_arcanjos" placeholder="Qual?">
+            </div>
+        </div>
+        <div class="field-group">
+            <label>Florais Etéricos:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="sim_florais" name="florais_etericos" value="sim">
+                <label for="sim_florais">Sim</label>
+                <input type="checkbox" id="nao_florais" name="florais_etericos" value="nao">
+                <label for="nao_florais">Não</label>
+                <input type="text" id="qual_florais" name="qual_florais" placeholder="Qual?">
+            </div>
+        </div>
+        <div class="field-group">
+            <label>Mesa Radiônica Mais Indicada:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="sim_mesa" name="mesa_radionica" value="sim">
+                <label for="sim_mesa">Sim</label>
+                <input type="checkbox" id="nao_mesa" name="mesa_radionica" value="nao">
+                <label for="nao_mesa">Não</label>
+                <input type="text" id="qual_mesa" name="qual_mesa" placeholder="Qual?">
+            </div>
+        </div>
+        <div class="field-group">
+            <label>Animal Pessoal de Poder:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="sim_animal" name="animal_poder" value="sim">
+                <label for="sim_animal">Sim</label>
+                <input type="checkbox" id="nao_animal" name="animal_poder" value="nao">
+                <label for="nao_animal">Não</label>
+                <input type="text" id="qual_animal" name="qual_animal" placeholder="Qual?">
+            </div>
+        </div>
+        <div class="field-group">
+            <label for="elevacao_energetica">Elevação Energética:</label>
+            <input type="text" id="elevacao_energetica" name="elevacao_energetica" aria-label="Elevação Energética">
+        </div>
+        <div class="field-group">
+            <label>Emoções Divinas:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="sim_emocoes" name="emocoes_divinas" value="sim">
+                <label for="sim_emocoes">Sim</label>
+                <input type="checkbox" id="nao_emocoes" name="emocoes_divinas" value="nao">
+                <label for="nao_emocoes">Não</label>
+                <input type="text" id="qual_emocoes" name="qual_emocoes" placeholder="Qual?">
+            </div>
+        </div>
+        <div class="field-group">
+            <label>Frequência em Hertz:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="sim_frequencia" name="frequencia_hertz" value="sim">
+                <label for="sim_frequencia">Sim</label>
+                <input type="checkbox" id="nao_frequencia" name="frequencia_hertz" value="nao">
+                <label for="nao_frequencia">Não</label>
+                <input type="text" id="qual_frequencia" name="qual_frequencia" placeholder="Qual?">
+            </div>
+        </div>
+        <div class="field-group">
+            <label>Ondas Cerebrais:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="sim_ondas" name="ondas_cerebrais" value="sim">
+                <label for="sim_ondas">Sim</label>
+                <input type="checkbox" id="nao_ondas" name="ondas_cerebrais" value="nao">
+                <label for="nao_ondas">Não</label>
+                <input type="text" id="qual_ondas" name="qual_ondas" placeholder="Qual?">
+            </div>
+        </div>
+        <div class="field-group">
+            <label>Gráficos de Radiestesia:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="sim_graficos" name="graficos_radiestesia" value="sim">
+                <label for="sim_graficos">Sim</label>
+                <input type="checkbox" id="nao_graficos" name="graficos_radiestesia" value="nao">
+                <label for="nao_graficos">Não</label>
+                <input type="text" id="qual_graficos" name="qual_graficos" placeholder="Qual?">
+            </div>
+        </div>
+        <div class="field-group">
+            <label>Gráficos de Dias e Meses:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="sim_graficos_dias" name="graficos_dias_meses" value="sim">
+                <label for="sim_graficos_dias">Sim</label>
+                <input type="checkbox" id="nao_graficos_dias" name="graficos_dias_meses" value="nao">
+                <label for="nao_graficos_dias">Não</label>
+                <input type="text" id="qual_graficos_dias" name="qual_graficos_dias" placeholder="Quando?">
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button onclick="generatePDF()">Gerar Relatório</button>
+            <button onclick="exportData()">Exportar Dados</button>         
+            <input type="file" id="importFile" style="display:none" onchange="importData(event)">
+            <button onclick="document.getElementById('importFile').click()">Importar Dados</button>
+            <button onclick="clearAllInputs()">Limpar Dados</button>
+        </div>
+
+        <footer>
+            <p>Ficha de Anamnese Terapêutica Para Trabalhos Energéticos</p>
+        </footer>
+    </div>
+
+</body>
+</html>
