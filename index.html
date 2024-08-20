@@ -168,7 +168,7 @@
         function clearAllInputs() {
             document.querySelectorAll('input').forEach(input => {
                 input.value = '';
-                if (input.type === 'radio') {
+                if (input.type === 'radio' || input.type === 'checkbox') {
                     input.checked = false;
                 }
             });
@@ -181,7 +181,7 @@
 
             const data = {};
             document.querySelectorAll('input').forEach((input) => {
-                if (input.type === 'radio') {
+                if (input.type === 'radio' || input.type === 'checkbox') {
                     if (input.checked) {
                         data[input.id] = input.value;
                     }
@@ -210,8 +210,8 @@
                     Object.keys(data).forEach(key => {
                         const input = document.getElementById(key);
                         if (input) {
-                            if (input.type === 'radio') {
-                                document.querySelector(`input[name="${input.name}"][value="${data[key]}"]`).checked = true;
+                            if (input.type === 'radio' || input.type === 'checkbox') {
+                                input.checked = data[key] === input.value;
                             } else {
                                 input.value = data[key];
                             }
